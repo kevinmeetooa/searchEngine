@@ -277,6 +277,7 @@ class ModeleLangue(IRModel):
         self.index=index
         self.indexInverse=indexInverse
         self.lmbda=lmbda
+        self.totalTf = sum([sum(e.values()) for e in self.indexInverse.values()])
 
     def getScores(self,query):
         dicoRes=dict()
@@ -285,8 +286,7 @@ class ModeleLangue(IRModel):
             for word in query:
                 if word in self.indexInverse:
                     tfWord = sum(self.indexInverse[word].values())
-                    totalTf = sum([sum(e.values()) for e in self.indexInverse.values()])
-                    probaCollection=tfWord/totalTf
+                    probaCollection=tfWord/self.totalTf
                     if doc in self.indexInverse[word]:
                         tfWordDoc=self.indexInverse[word][doc]
                         docLength=sum(self.index[doc].values())
@@ -303,10 +303,10 @@ class Okapi(IRModel):
         self.indexInverse=indexInverse
         self.b=b
         self.k1=k1
+        self.dAvg = statistics.mean([sum(e.values()) for e in self.indexInverse.values()])
 
     def getScores(self,query):
         dicoRes = dict()
-        dAvg = statistics.mean([sum(e.values()) for e in self.indexInverse.values()])
         for doc in self.index:
             total=0
             for word in query:
@@ -318,9 +318,8 @@ class Okapi(IRModel):
                     tf = self.indexInverse[word][doc]
                 else:
                     continue
-                numerateur = tf * (self.k1+1)
-                denominateur = tf + self.k1 * (1-self.b+self.b*(sum(self.index[doc].values())/dAvg))
-                print("word: {} -- numerateur/denominateur for doc {}: {} and {} ".format(word, doc, numerateur,denominateur))
-                total += (idf*numerateur)/denominateur
+                numerateur = idf * tf * (self.k1+1)
+                denominateur = tf + self.k1 * (1-self.b+self.b*(sum(self.index[doc].values())/self.dAvg))
+                total += numerateur/denominateur
             dicoRes[doc] = total
         return dicoRes
