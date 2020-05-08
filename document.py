@@ -19,3 +19,20 @@ class Document:
         "links: {}\n"\
         "N: {}".format(self.id,self.text,self.title,self.date,self.author,self.keywords,self.links,self.N)
         print(res)
+
+    def getText(self):
+        return self.text
+    def getId(self):
+        return self.id
+    def getTitle(self):
+        return self.title
+    def getDate(self):
+        return self.date
+    def getAuthor(self):
+        return self.author
+    def getKeywords(self):
+        return self.keywords
+    def getLinks(self):
+        return self.links
+    def getN(self):
+        return self.N

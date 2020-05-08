@@ -5,15 +5,30 @@ Created on Thu Feb 13 14:02:18 2020
 
 @author: 3530508
 """
-from tme1 import getTfsForDoc
 import math
 import collections
 import statistics
+import porter
+
+def queryPreprocessing(query):
+    """
+    Preprocess d'une query sous forme de string pour renvoyer un tableau de mots
+    """
+    arrayQuery = "".join(c for c in query if c.isalnum() or c.isspace()).split()
+    #print(arrayQuery)
+    res=[]
+    for word in arrayQuery:
+        word = porter.stem(word.lower()) #On stem les mots car ils sont stemmés dans l'index
+        res.append(word)
+    return res
+
 
 class Weighter:
-    def __init__(self,index,indexInverse):
-        self.index=index
-        self.indexInverse=indexInverse
+
+    def __init__(self,index):
+        self.index=index.index
+        self.indexInverse=index.indexInverse
+        self.indexObject=index
         self.initDocNorm()
         
     def getWeightsForDoc(self,idDoc):
@@ -33,16 +48,16 @@ class Weighter:
             norm=math.sqrt(norm)
             self.dicoNormes[doc]=norm
 
-
 class BinaryWeighter(Weighter):
-        
+
     def getWeightsForDoc(self,idDoc):
         return self.index[idDoc]
     
     def getWeightsForStem(self,stem):
-        return getTfsForDoc(self.index,stem)
+        stem = porter.stem(stem.lower())
+        return self.indexObject.getTfsForDoc(stem)
     
-    def getWeightsForQuery2(self,query):
+    """def getWeightsForQuery2(self,query):
         dicoRes=dict()
         for doc in self.index:
             dicoTemp=dict()
@@ -52,9 +67,10 @@ class BinaryWeighter(Weighter):
                 else:
                     dicoTemp[word]=0
             dicoRes[doc]=dicoTemp
-        return dicoRes
+        return dicoRes"""
     
     def getWeightsForQuery(self,query):
+        query = queryPreprocessing(query)
         dicoRes=dict()
         for word in query:
             dicoRes[word]=1
@@ -62,21 +78,22 @@ class BinaryWeighter(Weighter):
     
 class TFWeighter(Weighter):
 
-        
     def getWeightsForDoc(self,idDoc):
         return self.index[idDoc]
     
     def getWeightsForStem(self,stem):
-        return getTfsForDoc(self.index,stem)
+        stem = porter.stem(stem.lower())
+        return self.indexObject.getTfsForDoc(stem)
     
     def findWord(self,query,doc):
+        query = queryPreprocessing(query)
         cpt=0
         for word in query:
             if word in self.index[doc]:
                 cpt+=1
         return cpt
     
-    def getWeightsForQuery2(self,query):
+    """def getWeightsForQuery2(self,query):
         dicoRes=dict()
         for doc in self.index:
             dicoTemp=dict()
@@ -86,9 +103,10 @@ class TFWeighter(Weighter):
                 else:
                     dicoTemp[word]=0
             dicoRes[doc]=dicoTemp
-        return dicoRes
+        return dicoRes"""
     
     def getWeightsForQuery(self,query):
+        query = queryPreprocessing(query)
         dicoRes=dict()
         freq=collections.Counter(query)
         for word in query:
@@ -101,16 +119,18 @@ class TFIDFWeighter(Weighter):
         return self.index[idDoc]
     
     def getWeightsForStem(self,stem):
-        return getTfsForDoc(self.index,stem)
+        stem = porter.stem(stem.lower())
+        return self.indexObject.getTfsForDoc(stem)
     
     def findWord(self,query,doc):
+        query = queryPreprocessing(query)
         cpt=0
         for word in query:
             if word in self.index[doc]:
                 cpt+=1
         return cpt
     
-    def getWeightsForQuery2(self,query):
+    """def getWeightsForQuery2(self,query):
         dicoRes=dict()
         for doc in self.index:
             dicoTemp=dict()
@@ -118,11 +138,11 @@ class TFIDFWeighter(Weighter):
                 idf=math.log((1+len(self.index))/(1+len(self.indexInverse[word])))
                 dicoTemp[word]=idf
             dicoRes[doc]=dicoTemp
-        return dicoRes
+        return dicoRes"""
     
     def getWeightsForQuery(self,query):
+        query = queryPreprocessing(query)
         dicoRes=dict()
-        freq=collections.Counter(query)
         for word in query:
             if word in self.indexInverse:
                 idf=math.log((1+len(self.index))/(1+len(self.indexInverse[word])))
@@ -139,21 +159,23 @@ class logTFWeighter(Weighter):
         return dicoRes
     
     def getWeightsForStem(self,stem):
+        stem = porter.stem(stem.lower())
         dicoRes=dict()
-        indexInverse = getTfsForDoc(self.index,stem)
+        indexInverse = self.indexObject.getTfsForDoc(stem)
         for doc in self.index:
             if doc in indexInverse:
                 dicoRes[doc]=1+math.log(indexInverse[doc])
         return dicoRes
     
     def findWord(self,query,doc):
+        query = queryPreprocessing(query)
         cpt=0
         for word in query:
             if word in self.index[doc]:
                 cpt+=1
         return cpt
     
-    def getWeightsForQuery2(self,query):
+    """def getWeightsForQuery2(self,query):
         dicoRes=dict()
         for doc in self.index:
             dicoTemp=dict()
@@ -161,11 +183,11 @@ class logTFWeighter(Weighter):
                 idf=math.log((1+len(self.index))/(1+len(self.indexInverse[word])))
                 dicoTemp[word]=idf
             dicoRes[doc]=dicoTemp
-        return dicoRes   
+        return dicoRes  """
 
     def getWeightsForQuery(self,query):
+        query = queryPreprocessing(query)
         dicoRes=dict()
-        freq=collections.Counter(query)
         for word in query:
             if word in self.indexInverse:
                 idf=math.log((1+len(self.index))/(1+len(self.indexInverse[word])))
@@ -183,8 +205,9 @@ class logTFIDFWeighter(Weighter):
         return dicoRes
     
     def getWeightsForStem(self,stem):
+        stem =  porter.stem(stem.lower())
         dicoRes=dict()
-        indexInverse = getTfsForDoc(self.index,stem)
+        indexInverse = self.indexObject.getTfsForDoc(stem)
         for doc in self.index:
             if doc in indexInverse:
                 idf=math.log((1+len(self.index))/(1+len(indexInverse)))
@@ -192,13 +215,14 @@ class logTFIDFWeighter(Weighter):
         return dicoRes
     
     def findWord(self,query,doc):
+        query = queryPreprocessing(query)
         cpt=0
         for word in query:
             if word in self.index[doc]:
                 cpt+=1
         return cpt
     
-    def getWeightsForQuery2(self,query):
+    """def getWeightsForQuery2(self,query):
         dicoRes=dict()
         for doc in self.index:
             dicoTemp=dict()
@@ -209,9 +233,10 @@ class logTFIDFWeighter(Weighter):
                 else:
                     dicoTemp[word]=0
             dicoRes[doc]=dicoTemp
-        return dicoRes      
+        return dicoRes """
     
     def getWeightsForQuery(self,query):
+        query = queryPreprocessing(query)
         dicoRes=dict()
         freq=collections.Counter(query)
         for word in query:
@@ -220,106 +245,3 @@ class logTFIDFWeighter(Weighter):
                 dicoRes[word]=1+math.log(freq[word])*idf
         return dicoRes
 
-
-class IRModel:
-    def __init__(self,index,indexInverse):
-        self.index=index
-        self.indexInverse=indexInverse
-        
-    def getScores(self,query):
-        raise NotImplementedError
-        
-    def getRanking(self,query):
-        return {k: v for k, v in sorted(self.getScores(query).items(), key=lambda item: item[1],reverse=True)}
-    
-    
-class Vectoriel(IRModel):
-    
-    def __init__(self,index,indexInverse,weighter,normalized):
-        self.index=index
-        self.indexInverse=indexInverse
-        self.weighter=weighter
-        self.normalized=normalized
-
-    def scoreProdScal(self,query):
-        dicoRes=dict()
-        arrayQuery = self.weighter.getWeightsForQuery(query)
-        for doc in self.index:
-            prodScal=0
-            arrayDoc=self.weighter.getWeightsForDoc(doc)
-            for queryword in arrayQuery:
-                if queryword in arrayDoc:
-                    prodScal += arrayDoc[queryword]*arrayQuery[queryword]
-            dicoRes[doc]=prodScal
-        return dicoRes
-
-    def scoreCosinus(self,query):
-        dicoRes=dict()
-        arrayQuery = self.weighter.getWeightsForQuery(query)
-        queryNorm=math.sqrt(sum([term**2 for term in arrayQuery.values()]))
-        for doc in self.index:
-            prodScal=0
-            arrayDoc=self.weighter.getWeightsForDoc(doc)
-            for queryword in arrayQuery:
-                if queryword in arrayDoc:
-                    prodScal += arrayDoc[queryword]*arrayQuery[queryword]
-            norm=self.weighter.dicoNormes[doc]*queryNorm
-            dicoRes[doc]=prodScal/norm
-        return dicoRes
-    
-    def getScores(self,query): #Slmt sur les documents qui contiennent les termes de la requête
-        if self.normalized:
-            return self.scoreCosinus(query)
-        return self.scoreProdScal(query)
-
-class ModeleLangue(IRModel):
-    def __init__(self,index,indexInverse,lmbda):
-        self.index=index
-        self.indexInverse=indexInverse
-        self.lmbda=lmbda
-        self.totalTf = sum([sum(e.values()) for e in self.indexInverse.values()])
-
-    def getScores(self,query):
-        dicoRes=dict()
-        for doc in self.index:
-            proba=1
-            for word in query:
-                if word in self.indexInverse:
-                    tfWord = sum(self.indexInverse[word].values())
-                    probaCollection=tfWord/self.totalTf
-                    if doc in self.indexInverse[word]:
-                        tfWordDoc=self.indexInverse[word][doc]
-                        docLength=sum(self.index[doc].values())
-                        probaDoc=tfWordDoc/docLength
-                    else:
-                        continue
-                    proba *= (1-self.lmbda)*probaDoc + self.lmbda*probaCollection
-            dicoRes[doc] = proba
-        return dicoRes
-
-class Okapi(IRModel):
-    def __init__(self,index,indexInverse,b,k1):
-        self.index=index
-        self.indexInverse=indexInverse
-        self.b=b
-        self.k1=k1
-        self.dAvg = statistics.mean([sum(e.values()) for e in self.indexInverse.values()])
-
-    def getScores(self,query):
-        dicoRes = dict()
-        for doc in self.index:
-            total=0
-            for word in query:
-                if word not in self.indexInverse:
-                    continue
-                nbDocsContainingWord = len(self.indexInverse[word])
-                idf = math.log((len(self.index)-nbDocsContainingWord+0.5)/(nbDocsContainingWord+0.5))
-                if doc in self.indexInverse[word]:
-                    tf = self.indexInverse[word][doc]
-                else:
-                    continue
-                numerateur = idf * tf * (self.k1+1)
-                denominateur = tf + self.k1 * (1-self.b+self.b*(sum(self.index[doc].values())/self.dAvg))
-                total += numerateur/denominateur
-            dicoRes[doc] = total
-        return dicoRes
