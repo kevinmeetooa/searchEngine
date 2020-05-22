@@ -6,6 +6,10 @@ punctuationRegex = re.compile('[^a-zA-Z0-9]')
 blacklist = ["the", "a", "an", "on", "behind", "under", "there", "in", "on"]
 
 def parseWords(listeDocs):
+    """
+    Fonction auxiliaire retournant l'index et l'index inverse nécessaires à l'initialisation
+    de la classe Index définie plus bas
+    """
     dicoIndex = dict()
     indexInverse = dict()
     for i in range(len(listeDocs)):

@@ -1,6 +1,7 @@
 import re
 import numpy as np
-import document
+from tme1 import document
+
 indexRegex = re.compile("\.I (\d)+")
 TRegex=re.compile("\.T\n")
 BRegex=re.compile("\.B\n")
@@ -34,31 +35,33 @@ def initDocumentFromDict(id,dicoAttributes):
             links=dicoAttributes[key]
         if key==6:
             N=dicoAttributes[key]
-    doc=document.Document(id,titre,date,auteur,keywords,text,links,N)
+    doc= document.Document(id, titre, date, auteur, keywords, text, links, N)
     return doc
 
 
 def parse(filepath):
+    """
+    Fonction de parsing du fichier .txt en fonction des balises
+    J'ai préféré la faire à ma façon plutôt que de faire une grande regex
+    La fonction est sûrement incompréhensible... mais elle fonctionne
+    """
     dicoFinal=dict()
-    tabBool=[0,0,0,0,0,0,0,0]
-    #filepath="cacm/cacm.txt"
+    tabBool=[0,0,0,0,0,0,0,0] #Tableau de longueur 8, cela correspond aux 8 balises possibles.
     file=open(filepath,"r")
     i=0
     dicoAttributes=dict()
     buffer=""
     for line in file:
-        """if i==200:
-            break"""
         if (np.sum(tabBool)==1):
             buffer+=line
         find=re.search(indexRegex,line)
         for ind in range(len(tabRegex)):
-            find2=re.search(tabRegex[ind],line) #On cherche si l'on rencontre une des balises
+            find2=re.search(tabRegex[ind],line) #On cherche si l'on rencontre une des balises dans la ligne actuelle
             if find2 is not None:
                 try:
                     attribute=tabBool.index(1) #On regarde si on a déjà trouvé une balise (dans ce cas, on peut récupérer l'attribut)
-                except ValueError:
-                    tabBool[ind]=1
+                except ValueError: #Cas où l'on rencontre une balise pour la première fois pour ce document
+                    tabBool[ind]=1  #On marque la balise et on passe à la ligne suivante
                     continue
                 tabBool[attribute]=0
                 tabBool[ind]=1 #On marque la balise trouvée
@@ -73,12 +76,9 @@ def parse(filepath):
                 continue
             d=initDocumentFromDict(currentID,dicoAttributes) #On crée un document à partir du dictionnaire d'attributs
             dicoFinal[currentID]=d
-            #print("ATTRIBUTES:" +str(dicoAttributes))
-            #d.show()
             currentID=int(line[3:])
             dicoAttributes=dict()
         i+=1
-    #print("Document #{}: {}".format(currentID,dicoAttributes[0]))
     return dicoFinal
 
 class Parser:

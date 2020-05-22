@@ -1,8 +1,11 @@
 from tme3 import *
-import IRModelClass
-import parserClass
-import indexClass
-filepath = ".\\cisi/cisi.txt"
+from tme2 import IRModelClass
+from tme1 import parserClass, indexClass
+
+jeuDonnees = "cisi" #Remplacer par "cacm" OU "cisi"
+print("Jeu de données: {}".format(jeuDonnees))
+
+filepath = ".\\" + jeuDonnees +"/"+ jeuDonnees+".txt"
 
 dataCisi = parserClass.Parser(filepath)
 textData=[e.getText().replace("\n"," ") for e in dataCisi.dico.values()]
@@ -11,11 +14,11 @@ dictTextCisi={key:value for (key,value) in zip(textId,textData)}
 
 index = indexClass.Index(dicoDocs=dictTextCisi)
 dicoIndex, indexInverse = index.index, index.indexInverse
-okapi = IRModelClass.Okapi(index,0.75,1.2)
+okapi = IRModelClass.Okapi(index, 0.75, 1.2)
 
 
-fichierRequetes = "cisi/cisi.qry"
-fichierJugements = "cisi/cisi.rel"
+fichierRequetes = jeuDonnees+"/"+jeuDonnees+".qry"
+fichierJugements = jeuDonnees+"/"+jeuDonnees+".rel"
 query = QueryParser(fichierRequetes,fichierJugements)
 
 acc = Precision(3)
@@ -40,6 +43,7 @@ for mes in arrayMesuresSingleQuery:
 print("\nMesures de la qualité du modèle:")
 for mes in arrayMesuresModele:
     mes.displayScore(arrayArrayResults,arrayQueries)
-print("\n")
-displayAll3Mesures(okapi,query,3)
+print("\nCalcul des valeurs moyennes de précision, rappel, f-mesure...")
+displayAll3Mesures(okapi,query,50)
+print("\nDébut du gridSearch...")
 bestB, bestk1 = gridSearchPipeline(okapi,index,arrayQueries,3,0.5,1,minB=1,maxB=1.5)

@@ -1,8 +1,7 @@
-import weighterClass
-import IRModelClass
-import parserClass
-import indexClass
-filepath = ".\\cisi/cisi.txt"
+from tme2 import weighterClass, IRModelClass
+from tme1 import parserClass, indexClass
+
+filepath = "./cisi/cisi.txt"
 
 dataCisi = parserClass.Parser(filepath)
 textData=[e.getText().replace("\n"," ") for e in dataCisi.dico.values()]
@@ -18,7 +17,7 @@ print(weighter.getWeightsForQuery("testing query for logtfidf weighter testing t
 print(weighter.getWeightsForDoc(3))
 print(weighter.getWeightsForStem("truly"))
 
-okapi = IRModelClass.Okapi(index,0.75,1.2)
+okapi = IRModelClass.Okapi(index, 0.75, 1.2)
 print(okapi.getScores("The relationships between the organization and control of knowledge"))
 print(okapi.getRanking("The relationships between the organization and control of knowledge"))
 #Le meilleur document renvoyé par getRanking est le document 3, ce qui est cohérent

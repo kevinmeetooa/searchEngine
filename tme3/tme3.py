@@ -1,12 +1,10 @@
 import re
-import time
 import numpy as np
 import math
 from statistics import mean
-from weighterClass import queryPreprocessing
-from IRModelClass import Okapi
+from tme2.IRModelClass import Okapi
 
-spaceRegex=re.compile("\s+(\d+)\s+(\d+)")
+spaceRegex=re.compile("\s*(\d+)\s+(\d+)")
 indexRegex = re.compile("\.I (\d)+")
 TRegex=re.compile("\.T\n")
 BRegex=re.compile("\.B\n")
@@ -244,7 +242,7 @@ def buildResultsFromArrayQueries(modele,arrayQueries):
     res=[]
     for query in arrayQueries:
         #print("Id: {}".format(query.getId()))
-        result=list(modele.getRanking(queryPreprocessing(query.getText())))
+        result=list(modele.getRanking(query.getText()))
         res.append(result)
     return res
 
@@ -260,11 +258,12 @@ def displayAll3Mesures(modele,qp,k):
     for elt in res.values():
         query=elt.getText()
         listeDocs=elt.getListeDocs()
-        arrayReturned = list(modele.getRanking(queryPreprocessing(query)))[:k]
+        arrayReturned = list(modele.getRanking(query))[:k]
         precisionArray.append(precision.evalQuery(arrayReturned,elt))
         rappelArray.append(rappel.evalQuery(arrayReturned, elt))
         FMesureArray.append(fmes.evalQuery(arrayReturned,elt))
-    print("Precision: {}\nRappel: {}\nF-Mesure: {}".format(mean(precisionArray),mean(rappelArray),mean(FMesureArray)))
+    print("Precision moyenne du modèle au rang {}: {}\nRappel moyen du modèle au rang {}: {}\nF-Mesure moyenne du modèle au rang {}: {}"
+          .format(k,mean(precisionArray),k,mean(rappelArray),k,mean(FMesureArray)))
 
 
 def gridSearchPipeline(modele,index,arrayQueries,pas,minA,maxA,minB=0,maxB=1):

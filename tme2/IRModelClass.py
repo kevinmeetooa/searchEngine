@@ -4,7 +4,7 @@ import porter
 
 def queryPreprocessing(query):
     """
-    Preprocess d'une query sous forme de string pour renvoyer un tableau de mots
+    Preprocess d'une query sous forme de string pour renvoyer un tableau de mots stemmés
     """
     arrayQuery = "".join(c for c in query if c.isalnum() or c.isspace()).split()
     #print(arrayQuery)
@@ -23,7 +23,7 @@ class IRModel:
         raise NotImplementedError
 
     def getRanking(self, query):
-        return {k: v for k, v in sorted(self.getScores(query).items(), key=lambda item: item[1], reverse=True)}
+        return list(k for k, v in sorted(self.getScores(query).items(), key=lambda item: item[1], reverse=True))
 
 class Vectoriel(IRModel):
     def __init__(self, index, weighter, normalized):

@@ -1,6 +1,6 @@
-import parserClass
-import indexClass
-filepath = ".\\cisi/cisi.txt"
+from tme1 import parserClass, indexClass
+
+filepath = "./cisi/cisi.txt"
 
 dataCisi = parserClass.Parser(filepath)
 textData=[e.getText().replace("\n"," ") for e in dataCisi.dico.values()]
